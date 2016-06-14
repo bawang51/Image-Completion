@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include "bp.h"
+#include "public.h"
 
 using namespace std;
 using namespace cv;
