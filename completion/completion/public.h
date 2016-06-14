@@ -10,10 +10,17 @@ using namespace std;
 
 struct icPoint
 {
+	enum PointType
+	{
+		BORDER,
+		INNER,
+		OUTER
+	};
 	Point2i pos;
 	Point2i from;
 	int num;
 	vector<int> neighbors;
+	PointType type;
 };
 
 #endif
