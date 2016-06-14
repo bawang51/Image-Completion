@@ -1,6 +1,10 @@
 #include <opencv2\opencv.hpp>
 using namespace cv;
 
+#include <iostream>
+#include <vector>
+using namespace std;
+
 #ifndef _IC_PUBLIC_H
 #define _IC_PUBLIC_H
 
