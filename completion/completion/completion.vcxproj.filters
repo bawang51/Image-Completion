@@ -26,5 +26,8 @@
     <ClInclude Include="bp.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="public.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -18,10 +18,10 @@ using namespace cv;
 int main(){
 	Mat input = imread("test.jpg");
 	Mat mask = imread("mask.jpg");
+	vector<icPoint> allpoint;
 	input.convertTo(input, CV_8UC3);
 	mask.convertTo(mask, CV_8UC3);
-	Mat res = complete();
-	imshow("result", res);
+	allpoint = complete(input, mask, allpoint);
 	waitKey();
 	return 0;
 }
