@@ -275,7 +275,7 @@ vector<icPoint> complete(Mat img, Mat mask, vector<icPoint> allpp){
   cout << "min xi" << endl;
 	for (int i = 0; i < num; i++){
     cout << "min x" << i << endl;
-		int min_xi;
+		Point2i min_xi;
 		int min_sum = 2012345678;
     int xi = 0;
     for (int oi = 0; oi < numm; oi++)
@@ -292,17 +292,18 @@ vector<icPoint> complete(Mat img, Mat mask, vector<icPoint> allpp){
           int sum_mki = 0;
           for (int k = 0; k < allp[i].neighbors.size(); k++){
             if (allp[i].neighbors[k] < 0) continue;
+            cout << "  " << k << endl;
             sum_mki += m[allp[i].neighbors[k]][i][xi];
           }
           if (sum_mki + e11 < min_sum){
             min_sum = sum_mki+e11;
-            min_xi = xi;
+            min_xi = Point2i(nx+dx,ny+dy);
           }
           xi++;
         }
       }
     }
-    allp[i].from = allp[xi].pos;
+    allp[i].from = min_xi;
 	}
 
 	return allp;
