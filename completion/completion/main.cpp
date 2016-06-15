@@ -11,16 +11,20 @@
 #include <cstdlib>
 #include "bp.h"
 #include "public.h"
+#include "icUI.h"
 
 using namespace std;
 using namespace cv;
 
 int main(){
-	Mat input = imread("test.jpg");
-	Mat mask = imread("mask.jpg");
-	vector<icPoint> allpoint;
-	input.convertTo(input, CV_8UC3);
-	mask.convertTo(mask, CV_8UC3);
+	Mat input = imread("test.png");
+	Mat mask = getMask(input);
+	vector<icPoint> allpoint = getPoints(input, mask);
+  cout << "allpoint.size() : " << allpoint.size() << endl;
+  for (int i = 0; i < allpoint.size(); i++)
+  {
+    cout << allpoint[i].pos << endl;
+  }
 	allpoint = complete(input, mask, allpoint);
 	waitKey();
 	return 0;
