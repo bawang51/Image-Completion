@@ -21,12 +21,30 @@
     <ClCompile Include="bp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="icUI.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="natext.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="pois.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bp.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="public.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="icUI.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="natext.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="pois.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

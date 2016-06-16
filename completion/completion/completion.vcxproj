@@ -65,10 +65,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bp.cpp" />
+    <ClCompile Include="icUI.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="natext.cpp" />
+    <ClCompile Include="pois.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bp.h" />
+    <ClInclude Include="icUI.h" />
+    <ClInclude Include="natext.h" />
+    <ClInclude Include="pois.h" />
     <ClInclude Include="public.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
