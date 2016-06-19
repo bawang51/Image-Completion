@@ -19,7 +19,7 @@ Mat getMask(Mat input)
 	if (input.empty()) return Mat();
 	Mat ret(input.size(), CV_8U, Scalar::all(0));
 	Mat toshow = input.clone();
-	int size = 10;
+	int size = 5;
 	imshow("Generate Input Mask", toshow);
 	setMouseCallback("Generate Input Mask", mouseCallBack);
 	while (1)
@@ -34,6 +34,10 @@ Mat getMask(Mat input)
 		{
 			size++;
 		}
+    else if (key == 27)
+    {
+      break;
+    }
 		if (mouse_event == CV_EVENT_RBUTTONDOWN)
 		{
 			break;

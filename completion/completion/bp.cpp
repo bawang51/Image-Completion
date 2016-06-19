@@ -8,8 +8,8 @@ using namespace std;
 #include "bp.h"
 #include "public.h"
 
-int winr = 5; //窗口大小，半�?
-int winxir = 3;//加入外面可选点附近的点的窗口大小，半径
+int winr = 11; //窗口大小，半�?
+int winxir = 5;//加入外面可选点附近的点的窗口大小，半径
 
 //计算树的直径，式中的T
 int bfs(vector<icPoint>allp){
@@ -51,7 +51,7 @@ int bfs(vector<icPoint>allp){
 
 
 //计算式中的d(a, b),点的距离的平方和
-double d(Point2i i, Point2i xi, Mat line){
+double d(Point2i i, Point2i xi, Mat line, bool which){
 	Mat m1 = line.colRange(Range(i.x - winr, i.x + winr)).rowRange(Range(i.y - winr, i.y + winr));
 	Mat m2 = line.colRange(Range(xi.x - winr, xi.x + winr)).rowRange(Range(xi.y - winr, xi.y + winr));
 	double dist = 0;
@@ -72,12 +72,13 @@ double d(Point2i i, Point2i xi, Mat line){
 		double min = 1E20;
 		for (int l2 = 0; l2 < ml2.size(); l2++){
 			Point2i vec = ml1[l1] - ml2[l2];
-			double dd = sqrt(vec.x*vec.x + vec.y*vec.y);
+			double dd = (vec.x*vec.x + vec.y*vec.y);
 			if (dd < min) min = dd;
 		}
 		dist += min;
 	}
-	return dist / ml1.size();
+  if (which) return dist / ml2.size();
+  else return dist / ml1.size();
 }
 
 //对xi, i的情况计算式中的ei,也就是边界重叠部�?
@@ -86,58 +87,57 @@ int eii(Point2i xi, icPoint i, Mat mask, Mat img){
 	double ret = 0;
 	int count = 0;
 	if (i.type == icPoint::BORDER){
-		Mat toput = img.colRange(Range(xi.x - winr, xi.x + winr)).rowRange(Range(xi.y - winr, xi.y + winr));
-		for (int y = 0; y < toput.rows; y++){
-		for (int x = 0; x < toput.cols; x++){
-			int yy = y + i.pos.y - winr;
-			int xx = x + i.pos.x - winr;
-			if (mask.at<uchar>(yy, xx)){
-				int dr = img.at<Vec3b>(yy, xx)[0] - toput.at<Vec3b>(y, x)[0];
-				int dg = img.at<Vec3b>(yy, xx)[1] - toput.at<Vec3b>(y, x)[1];
-				int db = img.at<Vec3b>(yy, xx)[2] - toput.at<Vec3b>(y, x)[2];
-				ret += sqrt(dr*dr + dg*dg + db*db);
-				count++;
-			}
-		}
-		}
+    for (int dy = -winr; dy <= winr; dy++ )
+    {
+      if (i.pos.y + dy < 0 || i.pos.y + dy >= img.rows || xi.y + dy < 0 || xi.y + dy >= img.rows)
+        continue;
+      for (int dx = -winr; dx <= winr; dx++)
+      {
+        if (i.pos.x + dx < 0 || i.pos.x+ dx >= img.cols || xi.x+ dx < 0 || xi.x+ dx >= img.cols)
+          continue;
+        if (mask.at<uchar>(i.pos.y + dy, i.pos.x + dx)) continue;
+        int dr = img.at<Vec3b>(i.pos.y + dy, i.pos.x + dx)[0] - img.at<Vec3b>(xi.y + dy, xi.x + dx)[0];
+        int dg = img.at<Vec3b>(i.pos.y + dy, i.pos.x + dx)[1] - img.at<Vec3b>(xi.y + dy, xi.x + dx)[1];
+        int db = img.at<Vec3b>(i.pos.y + dy, i.pos.x + dx)[2] - img.at<Vec3b>(xi.y + dy, xi.x + dx)[2];
+        ret += dr*dr + dg*dg + db*db;
+        count++;
+      }
+    }
 		return ret / count;
-	}//是边界则计算，不是则�?
+	}
 	else return 0;
 }
 
-//计算式中e1
 int e1(Point2i xi, icPoint i, Mat line, Mat mask, Mat img){
-	int ks = 1;
+	int ks = 10;
 	int ki = 1;
-	double es = d(i.pos, xi, line) + d(xi, i.pos, line);
+	double es = d(i.pos, xi, line, false) + d(xi, i.pos, line, true);
 	double ei = eii(xi, i, mask, img);
 	return ks * es + ki * ei;
 }
 
-//计算式中的e2
 int e2(Point2i xi, Point2i xj, Point2i i, Point2i j, Mat img){
 	double ret = 0;
 	int count = 0;
-	Mat toput = img.colRange(Range(xi.x - winr, xi.x + winr)).rowRange(Range(xi.y - winr, xi.y + winr));
-	for (int y = 0; y < toput.rows; y++){
-    for (int x = 0; x < toput.cols; x++){
-		int yy = y + i.y - winr;
-		int xx = x + i.x - winr;
-		if (yy>=j.y-winr && yy<j.y+winr && xx>=j.x-winr && yy<j.x+winr){
-			int dr = img.at<Vec3b>(y + j.y - winr, x + j.x - winr)[0] - toput.at<Vec3b>(y, x)[0];
-			int dg = img.at<Vec3b>(y + j.y - winr, x + j.x - winr)[1] - toput.at<Vec3b>(y, x)[1];
-			int db = img.at<Vec3b>(y + j.y - winr, x + j.x - winr)[2] - toput.at<Vec3b>(y, x)[2];
-			ret += sqrt(dr*dr + dg*dg + db*db);
-			count++;
-		}
+  for (int dy = -winr; dy <= winr; dy++)
+  {
+    if (i.y + dy < 0 || i.y + dy >= img.rows || j.y + dy < 0 || j.y + dy >= img.rows)
+      continue;
+    for (int dx = -winr; dx <= winr; dx++)
+    {
+      if (i.x + dx < 0 || i.x+ dx >= img.cols || j.x+ dx < 0 || j.x+ dx >= img.cols)
+        continue;
+      int dr = img.at<Vec3b>(i.y + dy, i.x + dx)[0] - img.at<Vec3b>(j.y + dy, j.x + dx)[0];
+      int dg = img.at<Vec3b>(i.y + dy, i.x + dx)[1] - img.at<Vec3b>(j.y + dy, j.x + dx)[1];
+      int db = img.at<Vec3b>(i.y + dy, i.x + dx)[2] - img.at<Vec3b>(j.y + dy, j.x + dx)[2];
+      ret += dr*dr + dg*dg + db*db;
     }
-	}
+  }
 	return ret / count;
 }
 
-static int m[100][100][1000];//概率向量
+static int m[100][100][10000];
 
-//信任传播主要部分
 vector<icPoint> complete(Mat img, Mat mask, vector<icPoint> allpp){
 	Mat linegraph(img.size(), CV_8U, Scalar::all(0));
 	for (int i = 0; i < allpp.size(); i++){
@@ -148,16 +148,16 @@ vector<icPoint> complete(Mat img, Mat mask, vector<icPoint> allpp){
 	}
 	imshow("linegraph", linegraph);
 
-	int num = allpp.size();//区域内点的个�?
-	int numm = 0;//区域外点的个�?
+	int num = allpp.size();
+	int numm = 0;
 	vector<Point2i> outers;
 	for (int i = 0; i < num; i++)
 	if (allpp[i].type == icPoint::OUTER) outers.push_back(allpp[i].pos);
 	numm = outers.size();
 	num = num - numm;
-	int xn = numm * winxir * winxir * 4;//xi的个�?
+  cout << " num = " << num << endl;
+	int xn = numm * winxir * winxir * 4;
 
-	//把直线上，mask外的点扔到allx中，内的点扔到allp
 	cout << "allx-allp" << endl;
 	vector<icPoint> allp;
 	int list[1000];
@@ -173,59 +173,63 @@ vector<icPoint> complete(Mat img, Mat mask, vector<icPoint> allpp){
 		cout << "  " << list[i] << endl;
 	}
 	for (int i = 0; i < num; i++){
-	    allp[i].num = list[i];
+	    allp[i].num = i;
 		for (int j = 0; j < allp[i].neighbors.size(); j++){
 			allp[i].neighbors[j] = list[allp[i].neighbors[j]];
 		}
 	}
 	cout << "calculate T" << endl;
-	int t=bfs(allp);//计算树的直径，式中的T
-	cout << "done T" << endl;
-	//对M进行初始�?
-	for (int i = 0; i < num; i++)
-		for (int j = 0; j < num; j++)
-			for (int xi = 0; xi < xn; xi++)
-				m[i][j][xi] = 0;
-
-	//在T次更新中，更新Mij
+	int t=bfs(allp);
+	cout << "done T=" << t << endl;
+  memset(m, 0, sizeof(m));
+ 
 	cout << "update Mij" << endl;
-	for (int ti = 0; ti < t; ti++){
-		for (int i = 0; i < num; i++){
-			for (int nn = 0; nn < allp[i].neighbors.size(); nn++){
-				cout << "dd   ";
-			    int j = allp[i].neighbors[nn];
-		        if (j < 0) continue;
-				int xi = 0;
-		        for (int outer = 0; outer < numm; outer++){
-					int nx = outers[outer].x, ny = outers[outer].y;
-					for (int dy = -winxir; dy < winxir; dy++){
-			            for (int dx = -winxir; dx < winxir; dx++){
-			            int e11 = e1(Point2i(nx + dx, ny + dy), allp[i], linegraph, mask, img);
-			            int sum_mki = 0;
-						for (int k = 0; k < num; k++)
-							if (k != j)	sum_mki += m[k][i][xi];
-				            int min_e2 = 2012345678;
+	for (int ti = 0; ti < t; ti++)
+  {
+    for (int i = 0; i < num; i++)
+    {
+      for (int nn = 0; nn < allp[i].neighbors.size(); nn++)
+      {
+        cout << "dd   ";
+        int j = allp[i].neighbors[nn];
+        if (j < 0) continue;
+        int xi = 0;
+        for (int outer = 0; outer < numm; outer++)
+        {
+          int nx = outers[outer].x, ny = outers[outer].y;
+          for (int dy = -winxir; dy < winxir; dy++)
+          {
+            for (int dx = -winxir; dx < winxir; dx++)
+            {
+              int e11 = e1(Point2i(nx + dx, ny + dy), allp[i], linegraph, mask, img);
+              int sum_mki = 0;
+              for (int k = 0; k < num; k++)
+              if (k != j)	sum_mki += m[k][i][xi];
+              int min_e2 = 2012345678;
 
-							for (int oj = 0; oj < numm; oj++){
-				                int nxx = outers[oj].x, nyy = outers[oj].y;
-								for (int ddy = -winxir; ddy < winxir; ddy++){
-					                for (int ddx = -winxir; ddx < winxir; ddx++){
-					                    int n_e2 = e2(Point2i(nx+dx, ny+dy), Point2i(nxx+ddx, nyy+ddy), allp[i].pos, allp[j].pos, img);
-										if (n_e2 < min_e2) min_e2 = n_e2;
-									}
-								}
-							}
-
-							m[i][j][xi] = e11 + min_e2 + sum_mki;
-							xi++;
-						}
-					}
-				}
-			}
-		}
+              for (int oj = 0; oj < numm; oj++)
+              {
+                int nxx = outers[oj].x, nyy = outers[oj].y;
+                for (int ddy = -winxir; ddy < winxir; ddy++)
+                {
+                  for (int ddx = -winxir; ddx < winxir; ddx++)
+                  {
+                    int n_e2 = e2(Point2i(nx + dx, ny + dy), Point2i(nxx + ddx, nyy + ddy), allp[i].pos, allp[j].pos, img);
+                    if (n_e2 < min_e2) min_e2 = n_e2;
+                  }
+                }
+              }
+              m[i][j][xi] = e11 + min_e2 + sum_mki;
+              xi++;
+            }
+          }
+        }
+      }
+    }
 	}
 
 	//最后计算xi最小值的部分
+  Mat toshow = img.clone();
 	cout << "min xi" << endl;
 	for (int i = 0; i < num; i++){
 		cout << "min x" << i << endl;
@@ -254,7 +258,24 @@ vector<icPoint> complete(Mat img, Mat mask, vector<icPoint> allpp){
 			}
 		}
 		allp[i].from = min_xi;
+    for (int jj = -winr; jj <= winr; jj++){
+      if (allp[i].pos.y + jj >= 0 && allp[i].pos.y + jj < img.rows){
+        for (int ii = -winr; ii <= winr; ii++){
+          if (allp[i].pos.x + ii >= 0 && allp[i].pos.x + ii < img.cols){
+            if (mask.at<uchar>(allp[i].pos.y + jj, allp[i].pos.x + ii) == 0) continue;
+            mask.at<uchar>(allp[i].pos.y + jj, allp[i].pos.x + ii) = 0;
+            img.at<Vec3b>(allp[i].pos.y + jj, allp[i].pos.x + ii)[0] = img.at<Vec3b>(allp[i].from.y + jj, allp[i].from.x + ii)[0];
+            img.at<Vec3b>(allp[i].pos.y + jj, allp[i].pos.x + ii)[1] = img.at<Vec3b>(allp[i].from.y + jj, allp[i].from.x + ii)[1];
+            img.at<Vec3b>(allp[i].pos.y + jj, allp[i].pos.x + ii)[2] = img.at<Vec3b>(allp[i].from.y + jj, allp[i].from.x + ii)[2];
+          }
+        }
+      }
+    }
+    circle(toshow, allp[i].from, 3, Scalar(0, 0, 255), -1);
+    imshow("tipping", toshow);
+    waitKey(10);
 	}
-
+  waitKey();
+  destroyAllWindows();
 	return allp;
 }
